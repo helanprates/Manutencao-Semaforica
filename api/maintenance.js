@@ -1,4 +1,4 @@
-const { Pool } = require("pg");
+import { Pool } from "pg";
 
 const pool = new Pool({
   host: process.env.POSTGRES_HOST,
@@ -9,9 +9,14 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method === "POST") {
-    const { date, time, reporter, problem, restored, address } = req.body;
+    let body = req.body;
+    // Vercel pode não fazer o parse automático do JSON
+    if (typeof body === "string") {
+      body = JSON.parse(body);
+    }
+    const { date, time, reporter, problem, restored, address } = body;
     try {
       await pool.query(
         "INSERT INTO maintenance (date, time, reporter, problem, restored, address) VALUES ($1, $2, $3, $4, $5, $6)",
@@ -19,6 +24,7 @@ module.exports = async (req, res) => {
       );
       res.status(200).send("Manutenção registrada com sucesso.");
     } catch (err) {
+      console.error(err);
       res.status(500).send("Erro ao registrar manutenção.");
     }
   } else if (req.method === "GET") {
@@ -31,4 +37,4 @@ module.exports = async (req, res) => {
   } else {
     res.status(405).send("Método não permitido");
   }
-};
+}
