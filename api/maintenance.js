@@ -11,12 +11,7 @@ const pool = new Pool({
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
-    let body = req.body;
-    // Vercel pode não fazer o parse automático do JSON
-    if (typeof body === "string") {
-      body = JSON.parse(body);
-    }
-    const { date, time, reporter, problem, restored, address } = body;
+    const { date, time, reporter, problem, restored, address } = req.body;
     try {
       await pool.query(
         "INSERT INTO maintenance (date, time, reporter, problem, restored, address) VALUES ($1, $2, $3, $4, $5, $6)",
